@@ -1,0 +1,68 @@
+
+name: Build Hadota WiFi Manager APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Extract Hadota Project
+        run: |
+          ZIP_FILE=$(find . -maxdepth 1 -type f -name 'Hadota_WiFi_Manager_Android_Project*.zip' -print -quit)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "Project ZIP file not found"
+            exit 1
+          fi
+
+          unzip -q "$ZIP_FILE" -d source
+
+          test -f source/Hadota_WiFi_Manager_Android/package.json
+
+      - name: Install Dependencies
+        working-directory: source/Hadota_WiFi_Manager_Android
+        run: npm install
+
+      - name: Add Android Platform
+        working-directory: source/Hadota_WiFi_Manager_Android
+        run: npx cap add android
+
+      - name: Sync Android Project
+        working-directory: source/Hadota_WiFi_Manager_Android
+        run: npx cap sync android
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Build Debug APK
+        working-directory: source/Hadota_WiFi_Manager_Android/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hadota-WiFi-Manager-APK
+          path: source/Hadota_WiFi_Manager_Android/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
