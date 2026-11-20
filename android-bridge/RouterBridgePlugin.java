@@ -104,6 +104,71 @@ public class RouterBridgePlugin extends Plugin {
   finally{if(c!=null)c.disconnect();}
  }
 
+
+ @PluginMethod public void loginSavedCredentials(PluginCall call) {
+  String host=cleanHost(call.getString("host","192.168.1.1"));
+  if(!isPrivate(host)){call.reject("عنوان الراوتر المحلي غير صحيح");return;}
+  HttpURLConnection c=null;
+  try {
+   SharedPreferences prefs=getContext().getSharedPreferences("hadota_router_secure",0);
+   if(!prefs.contains("username_enc")||!prefs.contains("password_enc")){call.reject("احفظ بيانات الدخول على الجهاز أولاً");return;}
+   SecretKey key=getOrCreateKey();
+   String username=decryptValue(key,prefs.getString("username_enc",""));
+   String password=decryptValue(key,prefs.getString("password_enc",""));
+   java.net.CookieManager cookies=new java.net.CookieManager(null,java.net.CookiePolicy.ACCEPT_ALL);
+   java.net.CookieHandler.setDefault(cookies);
+   URL base=new URL("http://"+host+"/");
+   c=(HttpURLConnection)base.openConnection();
+   c.setConnectTimeout(8000);c.setReadTimeout(8000);c.setInstanceFollowRedirects(true);
+   int status=c.getResponseCode();
+   InputStream in=status>=400?c.getErrorStream():c.getInputStream();
+   String html=in==null?"":readLimited(in,250000); c.disconnect();c=null;
+   Matcher fm=Pattern.compile("(?is)<form\\b([^>]*)>").matcher(html);
+   if(!fm.find()){call.reject("لم أجد نموذج تسجيل الدخول في صفحة الراوتر");return;}
+   String attrs=fm.group(1);
+   String action=attribute(attrs,"action");
+   String method=attribute(attrs,"method");
+   if(method.isEmpty())method="GET";
+   URL target=action.isEmpty()?base:new URL(base,action);
+   Matcher im=Pattern.compile("(?is)<input\\b([^>]*)>").matcher(html);
+   StringBuilder body=new StringBuilder();
+   String userField="",passField="";
+   while(im.find()){
+    String a=im.group(1),name=attribute(a,"name"),type=attribute(a,"type"),value=attribute(a,"value");
+    if(name.isEmpty())continue;
+    if(name.equalsIgnoreCase("Frm_Username")||name.toLowerCase().contains("user"))userField=name;
+    if(name.equalsIgnoreCase("Frm_Password")||name.toLowerCase().contains("pass"))passField=name;
+    if("hidden".equalsIgnoreCase(type))appendParam(body,name,value);
+   }
+   if(userField.isEmpty()||passField.isEmpty()){call.reject("لم أتعرف على حقلي اسم المستخدم وكلمة المرور؛ لم يتم إرسال أي بيانات");return;}
+   appendParam(body,userField,username);appendParam(body,passField,password);
+   c=(HttpURLConnection)target.openConnection();
+   c.setRequestMethod(method.equalsIgnoreCase("POST")?"POST":"POST");
+   c.setDoOutput(true);c.setConnectTimeout(8000);c.setReadTimeout(10000);c.setInstanceFollowRedirects(true);
+   c.setRequestProperty("Content-Type","application/x-www-form-urlencoded");
+   c.setRequestProperty("Referer",base.toString());
+   byte[] data=body.toString().getBytes(StandardCharsets.UTF_8);
+   c.getOutputStream().write(data);
+   int resultStatus=c.getResponseCode();
+   InputStream ri=resultStatus>=400?c.getErrorStream():c.getInputStream();
+   String response=ri==null?"":readLimited(ri,250000);
+   boolean loginForm=Pattern.compile("(?is)<input\\b[^>]*(?:name|id)\\s*=\\s*['\"](?:Frm_Password|password)['\"]").matcher(response).find();
+   JSObject o=new JSObject();o.put("httpStatus",resultStatus);o.put("authenticated",resultStatus<400&&!loginForm);
+   o.put("message",resultStatus>=400?"رفض الراوتر طلب تسجيل الدخول (HTTP "+resultStatus+").":(loginForm?"وصلنا لرد الراوتر لكن صفحة الدخول ما زالت ظاهرة؛ قد يحتاج الجهاز طريقة تحقق إضافية.":"تم إرسال بيانات الدخول واستلم التطبيق رد الراوتر. يلزم فحص صفحة ما بعد الدخول لتأكيد الجلسة."));
+   call.resolve(o);
+  } catch(Exception e){call.reject("تعذر تسجيل الدخول للراوتر: "+e.getMessage());}
+  finally{if(c!=null)c.disconnect();}
+ }
+ private void appendParam(StringBuilder b,String name,String value)throws Exception{
+  if(b.length()>0)b.append("&");
+  b.append(java.net.URLEncoder.encode(name,"UTF-8")).append("=").append(java.net.URLEncoder.encode(value,"UTF-8"));
+ }
+ private String decryptValue(SecretKey key,String stored)throws Exception{
+  String[] parts=stored.split(":",2);if(parts.length!=2)throw new Exception("بيانات الدخول المحفوظة غير صالحة");
+  byte[] iv=Base64.decode(parts[0],Base64.NO_WRAP),ciphertext=Base64.decode(parts[1],Base64.NO_WRAP);
+  Cipher c=Cipher.getInstance("AES/GCM/NoPadding");c.init(Cipher.DECRYPT_MODE,key,new GCMParameterSpec(128,iv));
+  return new String(c.doFinal(ciphertext),StandardCharsets.UTF_8);
+ }
  @PluginMethod public void credentialsStored(PluginCall call) {
   SharedPreferences p=getContext().getSharedPreferences("hadota_router_secure",0);
   JSObject o=new JSObject();o.put("stored",p.contains("username_enc")&&p.contains("password_enc"));
