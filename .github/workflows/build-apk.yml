@@ -56,6 +56,19 @@ jobs:
             } catch(e) { out.textContent='فشل الاختبار: '+(e.message||String(e)); }
           });
           """
+          script += """
+          document.getElementById('inspectRouter').addEventListener('click', async () => {
+            const out=document.getElementById('routerResult');
+            const host=document.getElementById('routerHost').value.trim();
+            out.textContent='جارٍ فحص صفحة الدخول محليًا...';
+            try {
+              const bridge=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.RouterBridge;
+              if(!bridge){out.textContent='خدمة الاتصال غير موجودة في هذا الإصدار.';return;}
+              const result=await bridge.inspectLogin({host});
+              out.textContent=result.message || 'انتهى الفحص';
+            } catch(e) { out.textContent='فشل الفحص: '+(e.message||String(e)); }
+          });
+          """
           s=s.replace('</body>', '<script>'+script+'</script>\n</body>',1)
           p.write_text(s)
           PY
