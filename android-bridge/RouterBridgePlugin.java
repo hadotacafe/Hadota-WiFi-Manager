@@ -52,8 +52,11 @@ public class RouterBridgePlugin extends Plugin {
    Matcher inputs=Pattern.compile("(?is)<input\\b([^>]*)>").matcher(html);
    StringBuilder names=new StringBuilder(); int count=0;
    while(inputs.find()&&count<20){String name=attribute(inputs.group(1),"name");String type=attribute(inputs.group(1),"type");if(!name.isEmpty()){if(count>0)names.append(", ");names.append(name).append(type.isEmpty()?"":" ["+type+"]");count++;}}
-   JSObject o=new JSObject();o.put("httpStatus",status);o.put("finalUrl",finalUrl);o.put("title",title);o.put("form",formInfo);o.put("fields",names.toString());o.put("bytesInspected",html.length());
-   o.put("message","تم فحص صفحة الدخول قراءة فقط. "+formInfo+(names.length()>0?" الحقول: "+names:" لا توجد حقول إدخال ظاهرة."));
+   Matcher scripts=Pattern.compile("(?is)<script\\b([^>]*)>").matcher(html);
+   StringBuilder scriptPaths=new StringBuilder(); int scriptCount=0;
+   while(scripts.find()&&scriptCount<12){String src=attribute(scripts.group(1),"src");if(!src.isEmpty()){if(scriptCount>0)scriptPaths.append(", ");scriptPaths.append(src);scriptCount++;}}
+   JSObject o=new JSObject();o.put("httpStatus",status);o.put("finalUrl",finalUrl);o.put("title",title);o.put("form",formInfo);o.put("fields",names.toString());o.put("scriptPaths",scriptPaths.toString());o.put("bytesInspected",html.length());
+   o.put("message","تم فحص صفحة الدخول قراءة فقط. "+formInfo+(names.length()>0?" الحقول: "+names:" لا توجد حقول إدخال ظاهرة.")+(scriptPaths.length()>0?" ملفات JavaScript: "+scriptPaths:""));
    call.resolve(o);
   } catch(Exception e){JSObject o=new JSObject();o.put("message","تعذر فحص صفحة الدخول: "+e.getMessage());call.resolve(o);}
   finally{if(c!=null)c.disconnect();}
