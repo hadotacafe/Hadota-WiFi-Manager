@@ -61,6 +61,39 @@ public class RouterBridgePlugin extends Plugin {
   } catch(Exception e){JSObject o=new JSObject();o.put("message","تعذر فحص صفحة الدخول: "+e.getMessage());call.resolve(o);}
   finally{if(c!=null)c.disconnect();}
  }
+ @PluginMethod public void inspectScripts(PluginCall call) {
+  String host=cleanHost(call.getString("host","192.168.1.1"));
+  if(!isPrivate(host)){call.reject("عنوان الراوتر المحلي غير صحيح");return;}
+  HttpURLConnection c=null;
+  try {
+   c=(HttpURLConnection)new URL("http://"+host+"/").openConnection();
+   c.setConnectTimeout(7000); c.setReadTimeout(7000); c.setInstanceFollowRedirects(true);
+   int status=c.getResponseCode(); InputStream in=status>=400?c.getErrorStream():c.getInputStream();
+   String html=in==null?"":readLimited(in,180000); c.disconnect(); c=null;
+   Matcher sm=Pattern.compile("(?is)<script\\b([^>]*)>").matcher(html);
+   StringBuilder found=new StringBuilder(); int scanned=0, hits=0;
+   while(sm.find()&&scanned<12){
+    String src=attribute(sm.group(1),"src"); if(src.isEmpty())continue;
+    URL scriptUrl=new URL(new URL("http://"+host+"/"),src);
+    if(!scriptUrl.getHost().equals(host))continue;
+    HttpURLConnection js=(HttpURLConnection)scriptUrl.openConnection();
+    js.setConnectTimeout(5000);js.setReadTimeout(5000);js.setInstanceFollowRedirects(true);
+    int jsStatus=js.getResponseCode(); InputStream ji=jsStatus>=400?js.getErrorStream():js.getInputStream();
+    String body=ji==null?"":readLimited(ji,250000);js.disconnect();scanned++;
+    Matcher strings=Pattern.compile("['\\\"]([^'\\\"]{1,180})['\\\"]").matcher(body);
+    while(strings.find()&&hits<30){
+     String v=strings.group(1);
+     if(v.startsWith("/") && v.matches("(?i).*(arp|dhcp|device|wlan|wireless|host|mac|lan|client|login|status|network).*")){
+      if(found.indexOf(v)<0){if(hits>0)found.append(", ");found.append(v);hits++;}
+     }
+    }
+   }
+   JSObject o=new JSObject();o.put("scriptsScanned",scanned);o.put("candidatePaths",found.toString());
+   o.put("message",scanned==0?"لم أتمكن من قراءة ملفات JavaScript المحلية.":"تم فحص "+scanned+" ملفات محلية. مسارات محتملة لصفحات الأجهزة: "+(hits==0?"لم يظهر مسار واضح":found));
+   call.resolve(o);
+  } catch(Exception e){JSObject o=new JSObject();o.put("message","تعذر تحليل ملفات الراوتر: "+e.getMessage());call.resolve(o);}
+  finally{if(c!=null)c.disconnect();}
+ }
  private String cleanHost(String host){return host==null?"":host.trim().replaceFirst("^https?://","").replaceAll("/.*$","");}
  private String readLimited(InputStream in,int max)throws Exception{ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] buf=new byte[4096];int n;while((n=in.read(buf))>0&&b.size()<max)b.write(buf,0,Math.min(n,max-b.size()));in.close();return new String(b.toByteArray(),StandardCharsets.UTF_8);}
  private String match(String s,String regex){Matcher m=Pattern.compile(regex).matcher(s);return m.find()?m.group(1).replaceAll("<[^>]+>","").trim():"";}
