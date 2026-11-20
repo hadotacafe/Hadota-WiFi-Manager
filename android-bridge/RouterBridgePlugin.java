@@ -11,6 +11,15 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import android.content.SharedPreferences;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import java.security.KeyStore;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import android.util.Base64;
 @CapacitorPlugin(name="RouterBridge")
 public class RouterBridgePlugin extends Plugin {
  @PluginMethod public void probe(PluginCall call) {
@@ -93,6 +102,41 @@ public class RouterBridgePlugin extends Plugin {
    call.resolve(o);
   } catch(Exception e){JSObject o=new JSObject();o.put("message","تعذر تحليل ملفات الراوتر: "+e.getMessage());call.resolve(o);}
   finally{if(c!=null)c.disconnect();}
+ }
+
+ @PluginMethod public void credentialsStored(PluginCall call) {
+  SharedPreferences p=getContext().getSharedPreferences("hadota_router_secure",0);
+  JSObject o=new JSObject();o.put("stored",p.contains("username_enc")&&p.contains("password_enc"));
+  call.resolve(o);
+ }
+ @PluginMethod public void saveCredentials(PluginCall call) {
+  String username=call.getString("username",""); String password=call.getString("password","");
+  if(username.trim().isEmpty()||password.isEmpty()){call.reject("أدخل اسم المستخدم وكلمة المرور");return;}
+  try {
+   SecretKey key=getOrCreateKey();
+   String u=encryptValue(key,username); String p=encryptValue(key,password);
+   getContext().getSharedPreferences("hadota_router_secure",0).edit()
+    .putString("username_enc",u).putString("password_enc",p).apply();
+   JSObject o=new JSObject();o.put("saved",true);o.put("message","تم حفظ بيانات الدخول مشفرة على هذا الجهاز فقط.");
+   call.resolve(o);
+  } catch(Exception e){call.reject("تعذر حفظ بيانات الدخول بأمان: "+e.getMessage());}
+ }
+ @PluginMethod public void clearCredentials(PluginCall call) {
+  getContext().getSharedPreferences("hadota_router_secure",0).edit().clear().apply();
+  JSObject o=new JSObject();o.put("cleared",true);call.resolve(o);
+ }
+ private SecretKey getOrCreateKey() throws Exception {
+  KeyStore ks=KeyStore.getInstance("AndroidKeyStore");ks.load(null);
+  if(ks.containsAlias("HadotaRouterCredentials"))return (SecretKey)ks.getKey("HadotaRouterCredentials",null);
+  KeyGenerator kg=KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,"AndroidKeyStore");
+  kg.init(new KeyGenParameterSpec.Builder("HadotaRouterCredentials",KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT)
+   .setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).setRandomizedEncryptionRequired(true).build());
+  return kg.generateKey();
+ }
+ private String encryptValue(SecretKey key,String value) throws Exception {
+  Cipher c=Cipher.getInstance("AES/GCM/NoPadding");c.init(Cipher.ENCRYPT_MODE,key);
+  byte[] encrypted=c.doFinal(value.getBytes(StandardCharsets.UTF_8));
+  return Base64.encodeToString(c.getIV(),Base64.NO_WRAP)+":"+Base64.encodeToString(encrypted,Base64.NO_WRAP);
  }
  private String cleanHost(String host){return host==null?"":host.trim().replaceFirst("^https?://","").replaceAll("/.*$","");}
  private String readLimited(InputStream in,int max)throws Exception{ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] buf=new byte[4096];int n;while((n=in.read(buf))>0&&b.size()<max)b.write(buf,0,Math.min(n,max-b.size()));in.close();return new String(b.toByteArray(),StandardCharsets.UTF_8);}
