@@ -44,6 +44,19 @@ jobs:
           </section>
           '''
           s=s.replace('<section class="card">', panel+'\n<section class="card">',1)
+          credentials = '''
+          <section class="group" id="router-credentials">
+            <div class="row"><b>بيانات دخول الراوتر</b><span class="tag">حفظ مشفر محليًا</span></div>
+            <div class="field"><label>اسم المستخدم</label><input id="routerUsername" autocomplete="username" placeholder="اسم مستخدم الراوتر"></div>
+            <div class="field"><label>كلمة المرور</label><input id="routerPassword" type="password" autocomplete="current-password" placeholder="كلمة مرور الراوتر"></div>
+            <div class="note">تُشفّر البيانات داخل Android Keystore وتُحفظ على هذا الهاتف فقط. لا تُرسل إلى GitHub أو المحادثة.</div>
+            <button class="btn" style="width:100%;margin-top:10px" id="saveRouterCredentials">حفظ بيانات الدخول على الجهاز</button>
+            <button class="btn" style="width:100%;margin-top:8px" id="clearRouterCredentials">مسح بيانات الدخول المحفوظة</button>
+            <div id="credentialStatus" class="connection-result" style="font-size:12px;margin-top:8px">جارٍ التحقق من حالة الحفظ...</div>
+          </section>
+          '''
+          s=s.replace('<section class="card">', credentials+'\\n<section class="card">',1)
+
           script = """
           document.getElementById('probeRouter').addEventListener('click', async () => {
             const out=document.getElementById('routerResult');
@@ -81,6 +94,37 @@ jobs:
               const result=await bridge.inspectScripts({host});
               out.textContent=result.message || 'انتهى التحليل';
             } catch(e) { out.textContent='فشل التحليل: '+(e.message||String(e)); }
+          });
+          """
+          script += """
+          (async () => {
+            const bridge=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.RouterBridge;
+            const status=document.getElementById('credentialStatus');
+            if(!bridge){status.textContent='خدمة الحفظ الآمن غير متاحة في هذا الإصدار.';return;}
+            try { const r=await bridge.credentialsStored(); status.textContent=r.stored?'توجد بيانات دخول محفوظة ومشفرة على هذا الجهاز.':'لا توجد بيانات دخول محفوظة بعد.'; }
+            catch(e){status.textContent='تعذر قراءة حالة الحفظ الآمن.';}
+          })();
+          document.getElementById('saveRouterCredentials').addEventListener('click', async () => {
+            const status=document.getElementById('credentialStatus');
+            const username=document.getElementById('routerUsername').value;
+            const password=document.getElementById('routerPassword').value;
+            status.textContent='جارٍ التشفير والحفظ على الجهاز...';
+            try {
+              const bridge=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.RouterBridge;
+              const r=await bridge.saveCredentials({username,password});
+              document.getElementById('routerPassword').value='';
+              status.textContent=r.message || 'تم الحفظ المشفر على الجهاز.';
+            } catch(e){status.textContent='فشل الحفظ: '+(e.message||String(e));}
+          });
+          document.getElementById('clearRouterCredentials').addEventListener('click', async () => {
+            const status=document.getElementById('credentialStatus');
+            try {
+              const bridge=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.RouterBridge;
+              await bridge.clearCredentials();
+              document.getElementById('routerUsername').value='';
+              document.getElementById('routerPassword').value='';
+              status.textContent='تم مسح بيانات الدخول المحفوظة من هذا الجهاز.';
+            } catch(e){status.textContent='تعذر مسح البيانات: '+(e.message||String(e));}
           });
           """
           s=s.replace('</body>', '<script>'+script+'</script>\n</body>',1)
