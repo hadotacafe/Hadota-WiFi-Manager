@@ -50,6 +50,7 @@ jobs:
             <div class="field"><label>اسم المستخدم</label><input id="routerUsername" autocomplete="username" placeholder="اسم مستخدم الراوتر"></div>
             <div class="field"><label>كلمة المرور</label><input id="routerPassword" type="password" autocomplete="current-password" placeholder="كلمة مرور الراوتر"></div>
             <div class="note">تُشفّر البيانات داخل Android Keystore وتُحفظ على هذا الهاتف فقط. لا تُرسل إلى GitHub أو المحادثة.</div>
+            <button class="btn" style="width:100%;margin-top:10px" id="loginSavedRouter">تسجيل الدخول للراوتر</button>
             <button class="btn" style="width:100%;margin-top:10px" id="saveRouterCredentials">حفظ بيانات الدخول على الجهاز</button>
             <button class="btn" style="width:100%;margin-top:8px" id="clearRouterCredentials">مسح بيانات الدخول المحفوظة</button>
             <div id="credentialStatus" class="connection-result" style="font-size:12px;margin-top:8px">جارٍ التحقق من حالة الحفظ...</div>
@@ -104,6 +105,17 @@ jobs:
             try { const r=await bridge.credentialsStored(); status.textContent=r.stored?'توجد بيانات دخول محفوظة ومشفرة على هذا الجهاز.':'لا توجد بيانات دخول محفوظة بعد.'; }
             catch(e){status.textContent='تعذر قراءة حالة الحفظ الآمن.';}
           })();
+          document.getElementById('loginSavedRouter').addEventListener('click', async () => {
+            const status=document.getElementById('credentialStatus');
+            const host=document.getElementById('routerHost').value.trim();
+            status.textContent='جارٍ تسجيل الدخول محليًا إلى الراوتر...';
+            try {
+              const bridge=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.RouterBridge;
+              if(!bridge){status.textContent='خدمة الاتصال غير موجودة في هذا الإصدار.';return;}
+              const r=await bridge.loginSavedCredentials({host});
+              status.textContent=r.message || 'انتهى طلب تسجيل الدخول.';
+            } catch(e){status.textContent='تعذر تسجيل الدخول: '+(e.message||String(e));}
+          });
           document.getElementById('saveRouterCredentials').addEventListener('click', async () => {
             const status=document.getElementById('credentialStatus');
             const username=document.getElementById('routerUsername').value;
