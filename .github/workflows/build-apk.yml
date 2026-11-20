@@ -1,10 +1,10 @@
-name: Build Hadota WiFi Manager v1.4.2 APK
+name: Build Hadota WiFi Manager v1.5.0 APK
 on:
   workflow_dispatch:
   push:
     branches: [main]
     paths:
-      - 'Hadota-WiFi-Manager-Development-v1.4.2.zip'
+      - 'Hadota-WiFi-Manager-Development-v1.5.0.zip'
       - '.github/workflows/build-apk.yml'
 permissions:
   contents: read
@@ -20,10 +20,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
-      - name: Extract v1.4.2 project
+      - name: Extract v1.5.0 project
         run: |
           mkdir -p source
-          unzip -q Hadota-WiFi-Manager-Development-v1.4.2.zip -d source
+          unzip -q Hadota-WiFi-Manager-Development-v1.5.0.zip -d source
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
           test -f source/Hadota-WiFi-Manager-Android/app/src/main/assets/index.html
       - name: Build debug APK
@@ -32,6 +32,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Hadota-WiFi-Manager-v1.4.2-debug
+          name: Hadota-WiFi-Manager-v1.5.0-debug
           path: source/Hadota-WiFi-Manager-Android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
