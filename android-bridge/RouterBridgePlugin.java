@@ -14,9 +14,14 @@ public class RouterBridgePlugin extends Plugin {
   HttpURLConnection c=null;
   try {
    c=(HttpURLConnection)new URL("http://"+host+"/").openConnection();
-   c.setRequestMethod("GET"); c.setConnectTimeout(4500); c.setReadTimeout(4500); c.setInstanceFollowRedirects(false);
-   int status=c.getResponseCode(); JSObject o=new JSObject(); o.put("reachable",true); o.put("httpStatus",status);
-   o.put("message","تم الوصول إلى الراوتر (HTTP "+status+"). اختبار اتصال فقط؛ لم يتم تسجيل الدخول أو تغيير الإعدادات."); call.resolve(o);
+   c.setRequestMethod("GET"); c.setConnectTimeout(5000); c.setReadTimeout(5000); c.setInstanceFollowRedirects(false);
+   int status=c.getResponseCode(); String location=c.getHeaderField("Location");
+   JSObject o=new JSObject(); o.put("reachable",true); o.put("httpStatus",status);
+   if(location!=null)o.put("redirectLocation",location);
+   o.put("message",status>=300&&status<400
+    ? "الراوتر متاح، وأعاد توجيه الطلب إلى صفحة الدخول (HTTP "+status+"). لم يتم تسجيل الدخول أو تغيير الإعدادات."
+    : "تم الوصول إلى الراوتر (HTTP "+status+"). هذا اختبار اتصال فقط؛ لم يتم تسجيل الدخول أو تغيير الإعدادات.");
+   call.resolve(o);
   } catch(Exception e){JSObject o=new JSObject();o.put("reachable",false);o.put("message","تعذر الاتصال: "+e.getMessage());call.resolve(o);}
   finally{if(c!=null)c.disconnect();}
  }
