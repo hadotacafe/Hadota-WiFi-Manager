@@ -80,7 +80,7 @@ jobs:
           p.write_text(s)
           m=Path("android/app/src/main/AndroidManifest.xml")
           t=m.read_text()
-          t=t.replace("<application", '<uses-permission android:name="android.permission.INTERNET" />\\n    <application',1)
+          t=t.replace("<application", '<uses-permission android:name="android.permission.INTERNET" />' + chr(10) + '    <application',1)
           t=t.replace("<application", '<application android:usesCleartextTraffic="true"',1)
           m.write_text(t)
           PY
