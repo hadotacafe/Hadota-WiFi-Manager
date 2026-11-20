@@ -25,6 +25,39 @@ jobs:
       - name: Add Android platform
         working-directory: source/Hadota_WiFi_Manager_Android
         run: npx cap add android
+      - name: Add router connection screen
+        working-directory: source/Hadota_WiFi_Manager_Android
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path("www/index.html")
+          s=p.read_text()
+          panel = '''
+          <section class="group" id="router-connection">
+            <div class="row"><b>اتصال الراوتر</b><span class="tag">اختبار محلي</span></div>
+            <div class="field"><label>عنوان الراوتر</label><input id="routerHost" value="192.168.1.1" inputmode="url"></div>
+            <div class="note">اتصل بشبكة Hadota cafe. الاختبار لا يسجل الدخول ولا يغير إعدادات الراوتر.</div>
+            <button class="btn" style="width:100%;margin-top:10px" id="probeRouter">اختبار الاتصال</button>
+            <div class="connection-result" id="routerResult" style="font-size:12px;margin-top:10px">لم يتم الاختبار بعد.</div>
+          </section>
+          '''
+          s=s.replace('<section class="card">', panel+'\\n<section class="card">',1)
+          script = """
+          document.getElementById('probeRouter').addEventListener('click', async () => {
+            const out=document.getElementById('routerResult');
+            const host=document.getElementById('routerHost').value.trim();
+            out.textContent='جارٍ اختبار الاتصال...';
+            try {
+              const bridge=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.RouterBridge;
+              if(!bridge){out.textContent='خدمة الاتصال غير موجودة في هذا الإصدار.';return;}
+              const result=await bridge.probe({host});
+              out.textContent=result.message || 'انتهى الاختبار';
+            } catch(e) { out.textContent='فشل الاختبار: '+(e.message||String(e)); }
+          });
+          """
+          s=s.replace('</body>', '<script>'+script+'</script>\\n</body>',1)
+          p.write_text(s)
+          PY
       - name: Install local router bridge
         working-directory: source/Hadota_WiFi_Manager_Android
         run: |
