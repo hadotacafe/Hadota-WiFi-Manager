@@ -41,15 +41,15 @@ public class RouterBridgePlugin extends Plugin {
    InputStream in=(status>=400?c.getErrorStream():c.getInputStream());
    String html=in==null?"":readLimited(in,180000);
    String title=match(html,"(?is)<title[^>]*>(.*?)</title>");
-   Matcher forms=Pattern.compile("(?is)<form\\\\b([^>]*)>").matcher(html);
+   Matcher forms=Pattern.compile("(?is)<form\\b([^>]*)>").matcher(html);
    String formInfo="لم يتم العثور على نموذج HTML مباشر؛ قد تكون صفحة الدخول مبنية بجافاسكريبت.";
    if(forms.find()){
     String attrs=forms.group(1);
     String action=attribute(attrs,"action");
     String method=attribute(attrs,"method");
-    formInfo="نموذج الدخول: method="+(method.isEmpty()?"GET":method)+", action="+(action.isEmpty():"(افتراضي)":action);
+    formInfo="نموذج الدخول: method="+(method.isEmpty()?"GET":method)+", action="+(action.isEmpty()?"(افتراضي)":action);
    }
-   Matcher inputs=Pattern.compile("(?is)<input\\\\b([^>]*)>").matcher(html);
+   Matcher inputs=Pattern.compile("(?is)<input\\b([^>]*)>").matcher(html);
    StringBuilder names=new StringBuilder(); int count=0;
    while(inputs.find()&&count<20){String name=attribute(inputs.group(1),"name");String type=attribute(inputs.group(1),"type");if(!name.isEmpty()){if(count>0)names.append(", ");names.append(name).append(type.isEmpty()?"":" ["+type+"]");count++;}}
    JSObject o=new JSObject();o.put("httpStatus",status);o.put("finalUrl",finalUrl);o.put("title",title);o.put("form",formInfo);o.put("fields",names.toString());o.put("bytesInspected",html.length());
@@ -61,6 +61,6 @@ public class RouterBridgePlugin extends Plugin {
  private String cleanHost(String host){return host==null?"":host.trim().replaceFirst("^https?://","").replaceAll("/.*$","");}
  private String readLimited(InputStream in,int max)throws Exception{ByteArrayOutputStream b=new ByteArrayOutputStream();byte[] buf=new byte[4096];int n;while((n=in.read(buf))>0&&b.size()<max)b.write(buf,0,Math.min(n,max-b.size()));in.close();return new String(b.toByteArray(),StandardCharsets.UTF_8);}
  private String match(String s,String regex){Matcher m=Pattern.compile(regex).matcher(s);return m.find()?m.group(1).replaceAll("<[^>]+>","").trim():"";}
- private String attribute(String s,String key){Matcher m=Pattern.compile("(?is)\\\\b"+key+"\\\\s*=\\\\s*['\\\"]([^'\\\"]*)['\\\"]").matcher(s);return m.find()?m.group(1):"";}
- private boolean isPrivate(String ip){String[] p=ip.split("\\\\.");if(p.length!=4)return false;int[] n=new int[4];try{for(int i=0;i<4;i++){n[i]=Integer.parseInt(p[i]);if(n[i]<0||n[i]>255)return false;}}catch(Exception e){return false;}return n[0]==10||(n[0]==192&&n[1]==168)||(n[0]==172&&n[1]>=16&&n[1]<=31);}
+ private String attribute(String s,String key){Matcher m=Pattern.compile("(?is)\\b"+key+"\\s*=\\s*['\"]([^'\"]*)['\"]").matcher(s);return m.find()?m.group(1):"";}
+ private boolean isPrivate(String ip){String[] p=ip.split("\\.");if(p.length!=4)return false;int[] n=new int[4];try{for(int i=0;i<4;i++){n[i]=Integer.parseInt(p[i]);if(n[i]<0||n[i]>255)return false;}}catch(Exception e){return false;}return n[0]==10||(n[0]==192&&n[1]==168)||(n[0]==172&&n[1]>=16&&n[1]<=31);}
 }
