@@ -39,6 +39,7 @@ jobs:
             <div class="note">اتصل بشبكة Hadota cafe. الاختبار لا يسجل الدخول ولا يغير إعدادات الراوتر.</div>
             <button class="btn" style="width:100%;margin-top:10px" id="probeRouter">اختبار الاتصال</button>
             <button class="btn" style="width:100%;margin-top:8px" id="inspectRouter">فحص صفحة دخول الراوتر</button>
+            <button class="btn" style="width:100%;margin-top:8px" id="scanRouterScripts">تحليل ملفات الراوتر</button>
             <div class="connection-result" id="routerResult" style="font-size:12px;margin-top:10px">لم يتم الاختبار بعد.</div>
           </section>
           '''
@@ -67,6 +68,19 @@ jobs:
               const result=await bridge.inspectLogin({host});
               out.textContent=result.message || 'انتهى الفحص';
             } catch(e) { out.textContent='فشل الفحص: '+(e.message||String(e)); }
+          });
+          """
+          script += """
+          document.getElementById('scanRouterScripts').addEventListener('click', async () => {
+            const out=document.getElementById('routerResult');
+            const host=document.getElementById('routerHost').value.trim();
+            out.textContent='جارٍ تحليل ملفات الراوتر محليًا...';
+            try {
+              const bridge=window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.RouterBridge;
+              if(!bridge){out.textContent='خدمة الاتصال غير موجودة في هذا الإصدار.';return;}
+              const result=await bridge.inspectScripts({host});
+              out.textContent=result.message || 'انتهى التحليل';
+            } catch(e) { out.textContent='فشل التحليل: '+(e.message||String(e)); }
           });
           """
           s=s.replace('</body>', '<script>'+script+'</script>\n</body>',1)
