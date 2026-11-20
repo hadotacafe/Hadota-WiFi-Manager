@@ -41,7 +41,7 @@ jobs:
             <div class="connection-result" id="routerResult" style="font-size:12px;margin-top:10px">لم يتم الاختبار بعد.</div>
           </section>
           '''
-          s=s.replace('<section class="card">', panel+'\\n<section class="card">',1)
+          s=s.replace('<section class="card">', panel+'\n<section class="card">',1)
           script = """
           document.getElementById('probeRouter').addEventListener('click', async () => {
             const out=document.getElementById('routerResult');
@@ -55,7 +55,7 @@ jobs:
             } catch(e) { out.textContent='فشل الاختبار: '+(e.message||String(e)); }
           });
           """
-          s=s.replace('</body>', '<script>'+script+'</script>\\n</body>',1)
+          s=s.replace('</body>', '<script>'+script+'</script>\n</body>',1)
           p.write_text(s)
           PY
       - name: Install local router bridge
