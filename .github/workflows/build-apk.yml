@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/build-apk.yml'
       - 'patches/v1.6.1/stabilize_webview.py'
+      - 'patches/inspect_source.py'
 permissions:
   contents: read
 jobs:
@@ -26,6 +27,14 @@ jobs:
           unzip -q Hadota-WiFi-Manager-Development-v1.6.0.zip -d source
           python3 patches/v1.6.1/stabilize_webview.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
+      - name: Extract source for crash diagnosis
+        run: python3 patches/inspect_source.py
+      - name: Upload source inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hadota-WiFi-Manager-source-inspection
+          path: source-inspection/
+          if-no-files-found: error
       - name: Build debug APK
         working-directory: source/Hadota-WiFi-Manager-Android
         run: gradle --no-daemon assembleDebug
