@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/build-apk.yml'
+      - 'patches/v1.6.1/stabilize_webview.py'
 permissions:
   contents: read
 jobs:
@@ -19,60 +20,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.7'
-      - name: Extract v1.6.0 project and apply stability fix
+      - name: Extract and patch project
         run: |
           mkdir -p source
           unzip -q Hadota-WiFi-Manager-Development-v1.6.0.zip -d source
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          root=Path("source/Hadota-WiFi-Manager-Android")
-          p=root/"app/src/main/java/com/hadota/wifimanager/MainActivity.java"
-          s=p.read_text()
-          s=s.replace('web.removeJavascriptInterface("AndroidBridge");','')
-          bridge='web.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");'
-          first=s.find(bridge)
-          second=s.find(bridge, first+len(bridge)) if first >= 0 else -1
-          if second >= 0:
-              line_start=s.rfind("\\n",0,second)+1
-              line_end=s.find("\\n",second)
-              s=s[:line_start]+s[line_end+1:]
-          s=s.replace('''                if (host != null && host.equals(getGatewayAddress())) handler.proceed(); else handler.cancel();
-            }
-        });''','''                if (host != null && host.equalsIgnoreCase(getGatewayAddress())) handler.proceed(); else handler.cancel();
-            }
-            @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
-                if (web == view) {
-                    android.view.ViewParent parent = view.getParent();
-                    if (parent instanceof android.view.ViewGroup) ((android.view.ViewGroup) parent).removeView(view);
-                    view.destroy();
-                    web = null;
-                    createMainWebView();
-                }
-                return true;
-            }
-        });''')
-          s=s.replace('''        settings.setDomStorageEnabled(true);''','''        settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(true);
-        settings.setSupportMultipleWindows(false);
-        settings.setJavaScriptCanOpenWindowsAutomatically(false);
-        settings.setAllowContentAccess(false);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE);''')
-          # Move WebView construction into a reusable method for renderer recovery.
-          marker='''        web = new WebView(this);'''
-          if marker in s:
-              start=s.index(marker)
-              # onCreate's setup ends with loading the app asset.
-              end=s.index('        web.loadUrl("file:///android_asset/index.html");', start)+len('        web.loadUrl("file:///android_asset/index.html");')
-              setup=s[start:end]
-              s=s[:start]+'        createMainWebView();\n    }\n\n    private void createMainWebView() {\n'+setup+'\n'+s[end:]
-          p.write_text(s)
-          g=root/"app/build.gradle"
-          t=g.read_text().replace("versionCode 10","versionCode 11").replace("versionName '1.6.0'","versionName '1.6.1'")
-          g.write_text(t)
-          PY
+          python3 patches/v1.6.1/stabilize_webview.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
-          test -f source/Hadota-WiFi-Manager-Android/app/src/main/assets/index.html
       - name: Build debug APK
         working-directory: source/Hadota-WiFi-Manager-Android
         run: gradle --no-daemon assembleDebug
