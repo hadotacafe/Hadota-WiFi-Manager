@@ -27,9 +27,13 @@ method = r'''@Override public void onPageFinished(WebView view, String url) {
 s = s[:m.start()] + method + s[m.end():]
 router.write_text(s)
 
+# Start directly on HTTPS to avoid the initial HTTP 302 login redirect.
+s = s.replace('router.loadUrl("http://" + gateway + "/");', 'router.loadUrl("https://" + gateway + "/");')
+router.write_text(s)
+
 g = gradle.read_text()
-if "versionName '1.6.5'" not in g:
-    g = g.replace("versionCode 13", "versionCode 15").replace("versionName '1.6.3'", "versionName '1.6.4'")
-if "versionName '1.6.4'" not in g:
-    raise SystemExit("Could not set app version 1.6.4")
+if "versionName '1.6.6'" not in g:
+    g = g.replace("versionCode 13", "versionCode 16").replace("versionCode 15", "versionCode 16").replace("versionName '1.6.3'", "versionName '1.6.6'").replace("versionName '1.6.4'", "versionName '1.6.6'")
+if "versionName '1.6.6'" not in g:
+    raise SystemExit("Could not set app version 1.6.6")
 gradle.write_text(g)
