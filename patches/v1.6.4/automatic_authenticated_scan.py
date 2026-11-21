@@ -10,7 +10,7 @@ if "automaticScanStarted" not in s:
     s = s.replace("    private String gateway;", "    private String gateway;\n    private boolean automaticScanStarted = false;")
 
 # Preserve the existing router-page controls and add a conservative post-login detector.
-pattern = r"(@Override public void onPageFinished\\(WebView view, String url\\) \\{).*?(\\n            \\})"
+pattern = r"(@Override public void onPageFinished\(WebView view, String url\) \{).*?(\n            \})"
 m = re.search(pattern, s, re.S)
 if not m:
     raise SystemExit("onPageFinished method not found")
