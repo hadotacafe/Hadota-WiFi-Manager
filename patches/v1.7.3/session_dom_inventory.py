@@ -59,7 +59,7 @@ new = r'''    private void captureRouterPage() {
                         block.setLength(0);
                         currentName = value.replaceAll("(?is).*?(client\\s*[-#:]?\\s*\\d+).*", "$1");
                     }
-                    block.append(value).append('\\n');
+                    block.append(value).append('\n');
                 }
                 flushRouterBlock(out, seen, block.toString(), source, currentName);
             }
