@@ -10,7 +10,8 @@ on:
       - 'patches/v1.6.2/separate_router_webview.py'
       - 'patches/v1.6.3/router_full_readonly_scan.py'
       - 'patches/v1.6.4/automatic_authenticated_scan.py'
-      - 'patches/v1.6.8/session_bound_router_scan.py'
+      - 'patches/v1.6.7/session_bound_router_scan.py'
+      - 'patches/v1.6.8/router_mobile_layout.py'
 permissions:
   contents: read
 jobs:
@@ -34,6 +35,7 @@ jobs:
           python3 patches/v1.6.3/router_full_readonly_scan.py
           python3 patches/v1.6.4/automatic_authenticated_scan.py
           python3 patches/v1.6.7/session_bound_router_scan.py
+          python3 patches/v1.6.8/router_mobile_layout.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
       - name: Extract source for crash diagnosis
         run: python3 patches/inspect_source.py
@@ -52,5 +54,3 @@ jobs:
           name: Hadota-WiFi-Manager-v1.6.8-debug
           path: source/Hadota-WiFi-Manager-Android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-
-# Rebuild after v1.6.8 scan patch correction.
