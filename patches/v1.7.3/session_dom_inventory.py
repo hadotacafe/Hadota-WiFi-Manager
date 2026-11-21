@@ -18,13 +18,14 @@ new = r'''    private void captureRouterPage() {
             String payload = "";
             try { payload = new org.json.JSONArray("[" + (value == null ? "null" : value) + "]").optString(0, ""); }
             catch(Exception ignored) { }
-            org.json.JSONArray devices = parseRouterClients(payload);
+            final String capturedPayload = payload;
+            org.json.JSONArray devices = parseRouterClients(capturedPayload);
             web.removeJavascriptInterface("AndroidBridge");
             web.loadUrl("file:///android_asset/index.html");
             web.postDelayed(() -> {
                 if (web != null) {
                     web.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
-                    web.evaluateJavascript("showLiveDevices(" + devices.toString() + "," + org.json.JSONObject.quote(payload) + ")", null);
+                    web.evaluateJavascript("showLiveDevices(" + devices.toString() + "," + org.json.JSONObject.quote(capturedPayload) + ")", null);
                 }
             }, 500);
         });
