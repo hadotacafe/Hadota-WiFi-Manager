@@ -1,5 +1,5 @@
 from pathlib import Path
-import re
+import json
 
 root = Path("source/Hadota-WiFi-Manager-Android")
 router = root / "app/src/main/java/com/hadota/wifimanager/RouterActivity.java"
@@ -7,41 +7,47 @@ main = root / "app/src/main/java/com/hadota/wifimanager/MainActivity.java"
 gradle = root / "app/build.gradle"
 
 s = router.read_text()
-old = "view.evaluateJavascript(\"(function(){if(document.getElementById('hadotaReturnBtn'))return;var b=document.createElement('button');b.id='hadotaReturnBtn';b.textContent='رجوع إلى Hadota WiFi Manager';b.style='position:fixed;z-index:2147483647;top:8px;left:8px;padding:13px 16px;background:#d9b36a;color:#17120a;border:2px solid #fff;border-radius:12px;font-weight:bold;font-size:16px;box-shadow:0 2px 12px #000';b.onclick=function(){RouterBridge.capture()};document.body.appendChild(b);})();\", null);"
-new = """view.evaluateJavascript(\"(function(){if(document.getElementById('hadotaScanBtn'))return;function add(id,label,top,color,fn){var b=document.createElement('button');b.id=id;b.textContent=label;b.style='position:fixed;z-index:2147483647;top:'+top+'px;left:8px;padding:12px 14px;background:'+color+';color:#17120a;border:2px solid #fff;border-radius:11px;font-weight:bold;font-size:14px;box-shadow:0 2px 12px #000';b.onclick=fn;document.body.appendChild(b)}add('hadotaScanBtn','فحص شامل للراوتر',8,'#d9b36a',function(){this.textContent='جارٍ الفحص...';RouterBridge.scanAll()});add('hadotaReturnBtn','رجوع إلى التطبيق',58,'#e8d5ad',function(){RouterBridge.capture()});})();\", null);"""
+old = """                view.evaluateJavascript("(function(){if(document.getElementById('hadotaReturnBtn'))return;var b=document.createElement('button');b.id='hadotaReturnBtn';b.textContent='رجوع إلى Hadota WiFi Manager';b.style='position:fixed;z-index:2147483647;top:8px;left:8px;padding:13px 16px;background:#d9b36a;color:#17120a;border:2px solid #fff;border-radius:12px;font-weight:bold;font-size:16px;box-shadow:0 2px 12px #000';b.onclick=function(){RouterBridge.capture()};document.body.appendChild(b);})();", null);"""
+new = """                view.evaluateJavascript("(function(){if(document.getElementById('hadotaScanBtn'))return;function b(id,t,y,fn){var x=document.createElement('button');x.id=id;x.textContent=t;x.style='position:fixed;z-index:2147483647;top:'+y+'px;left:8px;padding:12px;background:#d9b36a;color:#17120a;border:2px solid white;border-radius:10px;font-weight:bold';x.onclick=fn;document.body.appendChild(x)}b('hadotaScanBtn','فحص بيانات الراوتر',8,function(){RouterBridge.scanAll()});b('hadotaReturnBtn','رجوع للتطبيق',58,function(){RouterBridge.capture()})})();", null);"""
 if old not in s:
-    raise SystemExit("RouterActivity injection anchor missing")
+    raise SystemExit("RouterActivity button anchor missing")
 s = s.replace(old, new)
-old_bridge = """    private class RouterBridge {
+
+js = """(async function(){const base=location.origin,seen=new Set(),todo=[location.href],pages=[],endpoints=new Set(),assets=new Set(),rx=/(device|client|wlan|wireless|dhcp|lan|host|mac|qos|queue|traffic|bandwidth|speed|filter|acl|status|network|arp|nat|firewall)/i;function add(v,set){try{let u=new URL(v,location.href);if(u.origin===base)set.add(u.href)}catch(e){}}while(todo.length&&pages.length<40){let u=todo.shift();if(seen.has(u))continue;seen.add(u);try{let r=await fetch(u,{credentials:'same-origin'}),t=await r.text(),d=new DOMParser().parseFromString(t,'text/html');pages.push({url:u,status:r.status,title:d.title,forms:[...d.forms].map(f=>({action:f.action,method:f.method,fields:[...f.elements].map(e=>e.name||e.id).filter(Boolean)}))});[...d.querySelectorAll('a[href]')].forEach(a=>{if(rx.test(a.href)&&!seen.has(a.href))add(a.href,todo)});[...d.querySelectorAll('script[src]')].forEach(a=>add(a.src,assets));for(let m of t.matchAll(/['"]((?:\/|\.\/)[^'"]{1,160})['"]/g))if(rx.test(m[1]))add(m[1],endpoints)}catch(e){pages.push({url:u,error:String(e)})}}for(let u of [...assets].slice(0,30)){try{let t=await(await fetch(u,{credentials:'same-origin'})).text();for(let m of t.matchAll(/['"]([^'"]{1,160})['"]/g))if(rx.test(m[1])&&(m[1][0]=='/'||/cgi|api|goform/i.test(m[1])))add(m[1],endpoints)}catch(e){}}return JSON.stringify({origin:base,scannedAt:new Date().toISOString(),pages,scriptFiles:[...assets],candidateEndpoints:[...endpoints]})})()"""
+java_js = json.dumps(js, ensure_ascii=True)
+anchor = """    private class RouterBridge {
         @JavascriptInterface public void capture() {"""
-new_bridge = """    private class RouterBridge {
+method = """    private class RouterBridge {
         @JavascriptInterface public void scanAll() {
             runOnUiThread(() -> {
                 if (router == null) return;
-                String js = \"(async function(){const origin=location.origin,seen=new Set(),queue=[location.href],pages=[],assets=new Set(),api=new Set(),maxPages=35;const key=/\\\\b(device|client|wlan|wireless|dhcp|lan|host|mac|qos|queue|traffic|bandwidth|speed|filter|acl|status|network|arp|nat|firewall)\\\\b/i;function add(u,set){try{let x=new URL(u,location.href);if(x.origin===origin)set.add(x.href)}catch(e){}}while(queue.length&&pages.length<maxPages){let u=queue.shift();if(seen.has(u))continue;seen.add(u);try{let res=await fetch(u,{credentials:'same-origin'});let txt=await res.text();let doc=new DOMParser().parseFromString(txt,'text/html');let title=(doc.title||u).trim();let forms=[...doc.forms].map(f=>({action:f.action,method:f.method,fields:[...f.elements].map(e=>e.name||e.id).filter(Boolean)}));let links=[...doc.querySelectorAll('a[href]')].map(a=>a.href);let scripts=[...doc.querySelectorAll('script[src]')].map(a=>a.src);let paths=[...txt.matchAll(/['\\\\\"]((?:\\\\/|\\\\.\\\\/)[^'\\\\\"]{1,180})['\\\\\"]/g)].map(m=>m[1]);pages.push({url:u,status:res.status,title,forms});scripts.forEach(x=>add(x,assets));links.forEach(x=>{try{let z=new URL(x);if(z.origin===origin&&key.test(z.href)&&!seen.has(z.href))queue.push(z.href)}catch(e){}});paths.filter(x=>key.test(x)).forEach(x=>add(x,api));}catch(e){pages.push({url:u,error:String(e)})}}let assetText=[];for(let u of [...assets].slice(0,35)){try{let r=await fetch(u,{credentials:'same-origin'}),t=await r.text();for(let m of t.matchAll(/['\\\\\"]([^'\\\\\"]{1,180})['\\\\\"]/g)){let v=m[1];if(key.test(v)&&(v.startsWith('/')||/\\\\b(get|post|query|cgi-bin)\\\\b/i.test(v)))add(v,api)}assetText.push(u+' ['+r.status+']')}catch(e){assetText.push(u+' [failed]')}}return JSON.stringify({generated:new Date().toISOString(),origin,pages,assets:assetText,candidateEndpoints:[...api].slice(0,120)});})()\";
-                router.evaluateJavascript(js, value -> {
-                    String report = value == null ? \"تعذر إنشاء التقرير\" : value;
-                    try { report = new org.json.JSONArray(\"[\" + report + \"]\").optString(0, report); } catch (Exception ignored) {}
+                router.evaluateJavascript(""" + java_js + """, value -> {
+                    String report = value == null ? "null" : value;
                     Intent result = new Intent();
-                    result.putExtra(\"router_report\", report);
+                    result.putExtra("router_report", report);
                     setResult(RESULT_OK, result);
                     finish();
                 });
             });
         }
         @JavascriptInterface public void capture() {"""
-if old_bridge not in s:
+if anchor not in s:
     raise SystemExit("RouterBridge anchor missing")
-s = s.replace(old_bridge, new_bridge)
+s = s.replace(anchor, method)
 router.write_text(s)
 
 m = main.read_text()
-needle = 'String text = data.getStringExtra("router_text");'
+needle = '            String text = data.getStringExtra("router_text");'
 if needle not in m:
     raise SystemExit("MainActivity result anchor missing")
-m = m.replace(needle, needle + '\n            String report = data.getStringExtra("router_report");\n            if (report != null && web != null) web.evaluateJavascript("routerInspectResult(" + org.json.JSONObject.quote("تقرير الفحص الشامل:\\n" + report) + ")", null);')
+addition = '''
+            String report = data.getStringExtra("router_report");
+            if (report != null && web != null) {
+                web.evaluateJavascript("routerInspectResult(" + org.json.JSONObject.quote("تقرير فحص الراوتر: " + report) + ")", null);
+            }'''
+if 'getStringExtra("router_report")' not in m:
+    m = m.replace(needle, needle + addition)
 main.write_text(m)
 
-g = gradle.read_text()
-g = g.replace("versionCode 12", "versionCode 13").replace("versionName '1.6.2'", "versionName '1.6.3'")
+g = gradle.read_text().replace("versionCode 12", "versionCode 13").replace("versionName '1.6.2'", "versionName '1.6.3'")
 gradle.write_text(g)
