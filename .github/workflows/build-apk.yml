@@ -9,7 +9,7 @@ on:
       - 'patches/inspect_source.py'
       - 'patches/v1.6.2/separate_router_webview.py'
       - 'patches/v1.6.3/router_full_readonly_scan.py'
-      - 'patches/v1.6.5/automatic_authenticated_scan.py'
+      - 'patches/v1.6.4/automatic_authenticated_scan.py'
 permissions:
   contents: read
 jobs:
