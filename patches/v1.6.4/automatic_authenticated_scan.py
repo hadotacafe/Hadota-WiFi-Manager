@@ -28,8 +28,8 @@ s = s[:m.start()] + method + s[m.end():]
 router.write_text(s)
 
 g = gradle.read_text()
-if "versionName '1.6.4'" not in g:
-    g = g.replace("versionCode 13", "versionCode 14").replace("versionName '1.6.3'", "versionName '1.6.4'")
+if "versionName '1.6.5'" not in g:
+    g = g.replace("versionCode 13", "versionCode 15").replace("versionName '1.6.3'", "versionName '1.6.4'")
 if "versionName '1.6.4'" not in g:
     raise SystemExit("Could not set app version 1.6.4")
 gradle.write_text(g)
