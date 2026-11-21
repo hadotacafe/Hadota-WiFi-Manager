@@ -1,4 +1,4 @@
-name: Build Hadota WiFi Manager v1.7.2 APK
+name: Build Hadota WiFi Manager v1.7.3 APK
 on:
   workflow_dispatch:
   push:
@@ -16,6 +16,7 @@ on:
       - 'patches/v1.7.0/router_navigation_guard.py'
       - 'patches/v1.7.1/stabilize_router_test.py'
       - 'patches/v1.7.2/live_inventory_bridge.py'
+      - 'patches/v1.7.3/session_dom_inventory.py'
 permissions:
   contents: read
 jobs:
@@ -44,6 +45,7 @@ jobs:
           python3 patches/v1.7.0/router_navigation_guard.py
           python3 patches/v1.7.1/stabilize_router_test.py
           python3 patches/v1.7.2/live_inventory_bridge.py
+          python3 patches/v1.7.3/session_dom_inventory.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
       - name: Extract source for crash diagnosis
         run: python3 patches/inspect_source.py
@@ -59,6 +61,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Hadota-WiFi-Manager-v1.7.2-debug
+          name: Hadota-WiFi-Manager-v1.7.3-debug
           path: source/Hadota-WiFi-Manager-Android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
