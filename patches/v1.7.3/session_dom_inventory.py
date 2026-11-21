@@ -10,7 +10,7 @@ new = r'''    private void captureRouterPage() {
         if (web == null) return;
         // Read the DOM from the already authenticated WebView. This preserves the router's
         // cookies/session and avoids making a second unauthenticated HTTP request.
-        String js = "(function(){var clean=function(x){return (x||'').replace(/\\\\s+/g,' ').trim()};"
+        String js = "(function(){var clean=function(x){return (x||'').replace(/\\s+/g,' ').trim()};"
           + "var tables=Array.from(document.querySelectorAll('table')).map(function(t){return clean(t.innerText)});"
           + "var rows=Array.from(document.querySelectorAll('tr')).map(function(r){return Array.from(r.querySelectorAll('th,td')).map(function(c){return clean(c.innerText)})}).filter(function(r){return r.length});"
           + "return JSON.stringify({url:location.href,title:document.title,text:document.body?document.body.innerText:'',tables:tables,rows:rows})})()";
@@ -54,18 +54,18 @@ new = r'''    private void captureRouterPage() {
                     }
                     String value = line.toString();
                     if (value.isEmpty()) continue;
-                    if (value.matches("(?is).*client\\\\s*[-#:]?\\\\s*\\\\d+.*")) {
+                    if (value.matches("(?is).*client\\s*[-#:]?\\s*\\d+.*")) {
                         flushRouterBlock(out, seen, block.toString(), source, currentName);
                         block.setLength(0);
-                        currentName = value.replaceAll("(?is).*?(client\\\\s*[-#:]?\\\\s*\\\\d+).*", "$1");
+                        currentName = value.replaceAll("(?is).*?(client\\s*[-#:]?\\s*\\d+).*", "$1");
                     }
                     block.append(value).append('\\n');
                 }
                 flushRouterBlock(out, seen, block.toString(), source, currentName);
             }
             if (out.length()==0) {
-                String all = pageText + "\\\\n" + root.optString("tables", "");
-                java.util.regex.Matcher ips = Pattern.compile("(?i)(?:IPv4\\\\s*)?IP\\\\s*Address\\\\s*[:：|]?\\\\s*((?:\\\\d{1,3}\\\\.){3}\\\\d{1,3})").matcher(all);
+                String all = pageText + "\\n" + root.optString("tables", "");
+                java.util.regex.Matcher ips = Pattern.compile("(?i)(?:IPv4\\s*)?IP\\s*Address\\s*[:：|]?\\s*((?:\\d{1,3}\\.){3}\\d{1,3})").matcher(all);
                 while (ips.find()) addRouterDevice(out, seen, "جهاز متصل", ips.group(1), "", source);
             }
         } catch(Exception ignored) { }
@@ -74,15 +74,15 @@ new = r'''    private void captureRouterPage() {
 
     private void flushRouterBlock(org.json.JSONArray out, java.util.Set<String> seen, String block, String source, String name) {
         if (block == null || block.isEmpty()) return;
-        String ip = findValue(block, "(?i)(?:IPv4\\\\s*)?IP\\\\s*Address\\\\s*[:：|]?\\\\s*((?:[0-9]{1,3}\\\\.){3}[0-9]{1,3})");
-        if (ip.isEmpty()) ip = findValue(block, "(?i)((?:192\\\\.168|10|172\\\\.(?:1[6-9]|2[0-9]|3[01]))\\\\.[0-9]{1,3}\\\\.[0-9]{1,3})");
-        String mac = findValue(block, "(?i)(?:MAC\\\\s*Address\\\\s*[:：|]?\\\\s*)?([0-9a-f]{2}(?:[:-][0-9a-f]{2}){5})");
-        String deviceName = findValue(block, "(?i)(?:Host\\\\s*Name|Device\\\\s*Name|HostName|Name)\\\\s*[:：|]?\\\\s*([^\\\\n|]{1,70})");
+        String ip = findValue(block, "(?i)(?:IPv4\\s*)?IP\\s*Address\\s*[:：|]?\\s*((?:[0-9]{1,3}\\.){3}[0-9]{1,3})");
+        if (ip.isEmpty()) ip = findValue(block, "(?i)((?:192\\.168|10|172\\.(?:1[6-9]|2[0-9]|3[01]))\\.[0-9]{1,3}\\.[0-9]{1,3})");
+        String mac = findValue(block, "(?i)(?:MAC\\s*Address\\s*[:：|]?\\s*)?([0-9a-f]{2}(?:[:-][0-9a-f]{2}){5})");
+        String deviceName = findValue(block, "(?i)(?:Host\\s*Name|Device\\s*Name|HostName|Name)\\s*[:：|]?\\s*([^\\n|]{1,70})");
         addRouterDevice(out, seen, deviceName.isEmpty()?name:deviceName, ip, mac, source);
     }
 
     private void addRouterDevice(org.json.JSONArray out, java.util.Set<String> seen, String name, String ip, String mac, String source) {
-        if (ip == null || ip.isEmpty() || !ip.matches("(?:[0-9]{1,3}\\\\.){3}[0-9]{1,3}")) return;
+        if (ip == null || ip.isEmpty() || !ip.matches("(?:[0-9]{1,3}\\.){3}[0-9]{1,3}")) return;
         String key = (mac == null || mac.isEmpty()) ? ip : mac.toLowerCase(java.util.Locale.ROOT);
         if (!seen.add(key)) return;
         org.json.JSONObject d = new org.json.JSONObject();
@@ -117,5 +117,5 @@ h = h.replace("function showLiveDevices(devices){", "function showLiveDevices(de
 h = h.replace("const prev=byMac[(d.mac||'').toLowerCase()]||{};", "const prev=byMac[(d.mac||'').toLowerCase()]||old.find(x=>x.ip===d.ip)||{};")
 h = h.replace("group:owner?'owner':(prev.group||'staff')", "group:owner?'owner':(prev.group||'unassigned')")
 h = h.replace("$('inspectResult').textContent='تم استيراد '+merged.length+' جهاز من صفحة الراوتر الحالية. هذه قراءة من جلسة الراوتر داخل التطبيق.'", "$('inspectResult').textContent='تم استيراد '+merged.length+' جهاز من جلسة الراوتر الحالية. '+(rawPayload?'تم التقاط جداول الصفحة مباشرة.':'')")
-h = h.replace('<option value="owner" ${d.group===\\'owner\\'?\\'selected\\':\\'\\'}>استثناء — جهاز المالك</option>', '<option value="owner" ${d.group===\\'owner\\'?\\'selected\\':\\'\\'}>استثناء — جهاز المالك</option><option value="unassigned" ${d.group===\\'unassigned\\'?\\'selected\\':\\'\\'}>غير مصنف</option>')
 html.write_text(h)
+
