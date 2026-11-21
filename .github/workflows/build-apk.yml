@@ -30,7 +30,13 @@ jobs:
           p=root/"app/src/main/java/com/hadota/wifimanager/MainActivity.java"
           s=p.read_text()
           s=s.replace('web.removeJavascriptInterface("AndroidBridge");','')
-          s=s.replace('web.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");','')
+          bridge='web.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");'
+          first=s.find(bridge)
+          second=s.find(bridge, first+len(bridge)) if first >= 0 else -1
+          if second >= 0:
+              line_start=s.rfind("\\n",0,second)+1
+              line_end=s.find("\\n",second)
+              s=s[:line_start]+s[line_end+1:]
           s=s.replace('''                if (host != null && host.equals(getGatewayAddress())) handler.proceed(); else handler.cancel();
             }
         });''','''                if (host != null && host.equalsIgnoreCase(getGatewayAddress())) handler.proceed(); else handler.cancel();
