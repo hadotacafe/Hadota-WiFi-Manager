@@ -1,4 +1,4 @@
-name: Build Hadota WiFi Manager v1.7.8 APK
+name: Build Hadota WiFi Manager v1.7.9 APK
 on:
   workflow_dispatch:
   push:
@@ -58,7 +58,7 @@ jobs:
       - name: Upload complete patched Android project
         uses: actions/upload-artifact@v4
         with:
-          name: Hadota-WiFi-Manager-v1.7.8-full-source
+          name: Hadota-WiFi-Manager-v1.7.9-full-source
           path: source/Hadota-WiFi-Manager-Android/
           if-no-files-found: error
       - name: Extract source for crash diagnosis
@@ -75,6 +75,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Hadota-WiFi-Manager-v1.7.8-debug
+          name: Hadota-WiFi-Manager-v1.7.9-debug
           path: source/Hadota-WiFi-Manager-Android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
