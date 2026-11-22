@@ -14,6 +14,6 @@ main.write_text(s, encoding="utf-8")
 
 gradle = root / "app/build.gradle"
 g = gradle.read_text(encoding="utf-8")
-g = re.sub(r"versionCode\\s+\\d+", "versionCode 26", g, count=1)
-g = re.sub(r"versionName\\s+'[^']+'", "versionName '1.7.6'", g, count=1)
+g = re.sub(r"versionCode\s+\d+", "versionCode 26", g, count=1)
+g = re.sub(r"versionName\s+'[^']+'", "versionName '1.7.6'", g, count=1)
 gradle.write_text(g, encoding="utf-8")
