@@ -84,7 +84,7 @@ replacement = r'''    private void captureRouterPage() {
                             flushRouterBlock(out, seen, pending.toString(), source, currentName);
                             pending.setLength(0);
                             flushRouterBlock(out, seen, value, source, currentName);
-                        } else pending.append(value).append('\\n');
+                        } else pending.append(value).append('\n');
                     }
                     flushRouterBlock(out, seen, pending.toString(), source, currentName);
                 }
