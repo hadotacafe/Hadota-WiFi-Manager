@@ -108,7 +108,7 @@ h = h.replace("const owner=(d.mac||'').toLowerCase()==='12:b1:0d:bd:b3:4a';", "c
 html.write_text(h, encoding='utf-8')
 gradle = root / 'app/build.gradle'
 g = gradle.read_text(encoding='utf-8')
-g = re.sub(r'versionCode\s+\\d+', 'versionCode 27', g, count=1)
+g = re.sub(r'versionCode\s+\d+', 'versionCode 27', g, count=1)
 g = re.sub(r"versionName\s+'[^']+'", "versionName '1.7.7'", g, count=1)
 gradle.write_text(g, encoding='utf-8')
 print('Applied Hadota WiFi Manager v1.7.7 row-based live client extraction patch.')
