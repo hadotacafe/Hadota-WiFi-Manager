@@ -15,7 +15,7 @@ s=s.replace(old,"                if (nativeImportButton != null) nativeImportBut
 # Remove accidental state where app home can cover it: visible but disabled on local home is not needed; leave it visible to prove it is a real overlay.
 g=root/"app/build.gradle"
 t=g.read_text(encoding="utf-8")
-t,n1=re.subn(r"versionCode\s+\\d+","versionCode 32",t,count=1)
+t,n1=re.subn(r"versionCode\s+\d+","versionCode 32",t,count=1)
 t,n2=re.subn(r"versionName\s+'[^']+'","versionName '1.8.2'",t,count=1)
 if n1!=1 or n2!=1: raise SystemExit("Version bump failed")
 g.write_text(t,encoding="utf-8")
