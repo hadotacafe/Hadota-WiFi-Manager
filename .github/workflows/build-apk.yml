@@ -53,6 +53,12 @@ jobs:
           python3 patches/v1.7.5/router_api_discovery.py
           python3 patches/v1.7.6/inline_script_inspector.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
+      - name: Upload complete patched Android project
+        uses: actions/upload-artifact@v4
+        with:
+          name: Hadota-WiFi-Manager-v1.7.6-full-source
+          path: source/Hadota-WiFi-Manager-Android/
+          if-no-files-found: error
       - name: Extract source for crash diagnosis
         run: python3 patches/inspect_source.py
       - name: Upload source inspection
