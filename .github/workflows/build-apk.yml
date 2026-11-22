@@ -21,7 +21,7 @@ on:
       - 'patches/v1.7.5/router_api_discovery.py'
       - 'patches/v1.7.6/inline_script_inspector.py'
       - 'patches/v1.7.7/live_client_row_parser.py'
-      - 'patches/v1.8.2/native_import_overlay_verified.py'
+      - 'patches/v1.8.2/force_visible_import_button.py'
 permissions:
   contents: read
 jobs:
@@ -55,7 +55,7 @@ jobs:
           python3 patches/v1.7.5/router_api_discovery.py
           python3 patches/v1.7.6/inline_script_inspector.py
           python3 patches/v1.7.7/live_client_row_parser.py
-          python3 patches/v1.8.2/native_import_overlay_verified.py
+          python3 patches/v1.8.2/force_visible_import_button.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
       - name: Upload complete patched Android project
         uses: actions/upload-artifact@v4
