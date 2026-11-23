@@ -44,7 +44,7 @@ s=s[:start]+fn+s[end:]
 # Remove the obsolete confirmation handler left by earlier patch versions.
 old_commit=s.find("window.commitStaffClassification = function(){")
 if old_commit>=0:
-    old_end=s.find("\\n};",old_commit)
+    old_end=s.find("\n};",old_commit)
     if old_end<0: raise SystemExit("Old commit handler terminator missing")
     s=s[:old_commit]+s[old_end+3:]
 # Remove any stale modal references from the markup.
