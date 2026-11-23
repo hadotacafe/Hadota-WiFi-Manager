@@ -5,7 +5,7 @@ html=root/"app/src/main/assets/index.html"
 s=html.read_text(encoding="utf-8")
 s=s.replace('id="classifyImportedBtn" style="display:none" >','id="classifyImportedBtn" style="display:none" type="button" onclick="window.classifyImportedAsStaff()">')
 s=s.replace('id="confirmStaffClassify" type="button">','id="confirmStaffClassify" type="button" onclick="window.commitStaffClassification()">')
-s=s.replace('id="cancelStaffClassify" type="button">','id="cancelStaffClassify" type="button" onclick="document.getElementById(\\'staffClassifyModal\\').style.display=\\'none\\'">')
+s=s.replace('id="cancelStaffClassify" type="button">', """id="cancelStaffClassify" type="button" onclick="document.getElementById('staffClassifyModal').style.display='none'">""")
 s=s.replace('function commitStaffClassification(){','window.commitStaffClassification = function(){',1)
 s=s.replace(" $('staffClassifyModal').style.display='none';\n}"," $('staffClassifyModal').style.display='none';\n};",1)
 # Remove both previous click-binding approaches; inline handlers are the sole action path.
