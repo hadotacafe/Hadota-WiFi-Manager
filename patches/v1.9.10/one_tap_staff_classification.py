@@ -48,7 +48,6 @@ if old_commit>=0:
     if old_end<0: raise SystemExit("Old commit handler terminator missing")
     s=s[:old_commit]+s[old_end+3:]
 # Remove any stale modal references from the markup.
-s=s.replace("id=\\"staffClassifyError\\"","")
 if 'staffClassifyModal' in s or 'commitStaffClassification' in s:
     raise SystemExit("Old modal code remains")
 if 'onclick="classifyImportedAsStaff()"' not in s or 'function classifyImportedAsStaff()' not in s:
