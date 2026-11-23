@@ -39,7 +39,7 @@ on:
       - 'patches/v1.9.13/isolate_router_test_executor.py'
       - 'patches/v1.9.14/router_test_watchdog.py'
       - 'patches/v1.9.15/keep_android_bridge_on_return.py'
-      - 'patches/v1.9.18/open_router_in_dedicated_activity.py'
+      - 'patches/v1.9.17/force_dedicated_router_activity.py'
 permissions:
   contents: read
 jobs:
@@ -91,7 +91,7 @@ jobs:
           python3 patches/v1.9.13/isolate_router_test_executor.py
           python3 patches/v1.9.14/router_test_watchdog.py
           python3 patches/v1.9.15/keep_android_bridge_on_return.py
-          python3 patches/v1.9.18/force_dedicated_router_activity.py
+          python3 patches/v1.9.17/force_dedicated_router_activity.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
       - name: Upload complete patched Android project
         uses: actions/upload-artifact@v4
