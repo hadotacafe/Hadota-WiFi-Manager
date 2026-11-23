@@ -5,7 +5,7 @@ p=root/"app/src/main/assets/index.html"
 s=p.read_text(encoding="utf-8")
 css="""<style>
 :root{color-scheme:dark;--gold:#e1bd75;--txt:#f7f3e9;--muted:#9eacbd;--line:#29394d;--green:#55d6a5;--red:#ff7777;--amber:#f1c46c}
-body{background:radial-gradient(ellipse at 85% -10%,rgba(206,164,91,.16),transparent 34%),linear-gradient(160deg,#111d2b 0,#090e16 55%,#0b111b 100%);padding:18px 14px 42px}
+body{background:radial-gradient(ellipse at 85% -10%,rgba(206,164,91,.16),transparent 34%),linear-gradient(160deg,#111d2b 0,#090e16 55%,#0b111b 100%);padding:88px 14px 42px}
 .head{gap:13px;margin:5px 2px 18px}.logo{width:58px;height:58px;flex:0 0 58px;border-radius:19px;background:linear-gradient(145deg,#f4d99a,#9f7132);box-shadow:0 7px 22px rgba(216,179,107,.2);display:grid;place-items:center}.logo svg{width:48px;height:48px}
 .card{background:linear-gradient(145deg,rgba(22,34,49,.97),rgba(15,24,36,.98));border:1px solid rgba(117,139,165,.2);border-radius:20px;padding:17px;box-shadow:0 14px 34px rgba(0,0,0,.24)}
 .btn{border-radius:13px;min-height:48px;font-weight:800;background:linear-gradient(135deg,#f3d99e,#c99c51);box-shadow:0 6px 16px rgba(201,156,81,.13)}.btn.alt{background:linear-gradient(145deg,#26394f,#1a2a3d);border-color:#3a5069}
@@ -32,7 +32,7 @@ bg='''<vector xmlns:android="http://schemas.android.com/apk/res/android" android
 ad='''<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android"><background android:drawable="@drawable/ic_launcher_background"/><foreground android:drawable="@drawable/ic_launcher_foreground"/></adaptive-icon>'''
 for n in ("ic_launcher.xml","ic_launcher_round.xml"):(res/"mipmap-anydpi-v26"/n).write_text(ad,encoding="utf-8")
 mp=root/"app/src/main/AndroidManifest.xml";m=mp.read_text(encoding="utf-8").replace('android:label="Hadota WiFi Manager"','android:label="Hadota WiFi Manager" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round"');mp.write_text(m,encoding="utf-8")
-gp=root/"app/build.gradle";g=gp.read_text(encoding="utf-8");g,a=re.subn(r"versionCode\s+\d+","versionCode 35",g,count=1);g,b=re.subn(r"versionName\s+'[^']+'","versionName '1.9.0'",g,count=1)
+gp=root/"app/build.gradle";g=gp.read_text(encoding="utf-8");g,a=re.subn(r"versionCode\s+\d+","versionCode 36",g,count=1);g,b=re.subn(r"versionName\s+'[^']+'","versionName '1.9.1'",g,count=1)
 if a!=1 or b!=1:raise SystemExit("Version update failed")
 gp.write_text(g,encoding="utf-8")
-print("Applied premium responsive UI and new Wi-Fi shield launcher icon, version 1.9.0")
+print("Applied premium responsive UI and new Wi-Fi shield launcher icon, version 1.9.1")
