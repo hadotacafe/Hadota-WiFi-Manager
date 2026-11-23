@@ -41,7 +41,14 @@ fn="""function classifyImportedAsStaff(){
  }
 }"""
 s=s[:start]+fn+s[end:]
-# Remove modal remnants if any and ensure handler is globally visible.
+# Remove the obsolete confirmation handler left by earlier patch versions.
+old_commit=s.find("window.commitStaffClassification = function(){")
+if old_commit>=0:
+    old_end=s.find("\\n};",old_commit)
+    if old_end<0: raise SystemExit("Old commit handler terminator missing")
+    s=s[:old_commit]+s[old_end+3:]
+# Remove any stale modal references from the markup.
+s=s.replace("id=\\"staffClassifyError\\"","")
 if 'staffClassifyModal' in s or 'commitStaffClassification' in s:
     raise SystemExit("Old modal code remains")
 if 'onclick="classifyImportedAsStaff()"' not in s or 'function classifyImportedAsStaff()' not in s:
