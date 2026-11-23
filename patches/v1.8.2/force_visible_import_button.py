@@ -6,7 +6,7 @@ s=p.read_text(encoding="utf-8")
 # Keep the native control visible independently of URL redirects, host parsing, and page JavaScript.
 s=s.replace("        nativeImportButton.setVisibility(android.view.View.GONE);","        nativeImportButton.setVisibility(android.view.View.VISIBLE);",1)
 s=s.replace("            Gravity.TOP | Gravity.RIGHT);","            Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);",1)
-s=s.replace("        importParams.setMargins(12, 12, 12, 12);","        importParams.setMargins(12, 12, 12, 28);",1)
+s=s.replace("        importParams.setMargins(12, 12, 12, 12);","        importParams.setMargins(12, 12, 12, 100);",1)
 # Do not let navigation callbacks hide the control after ZTE redirects.
 old="""                if (nativeImportButton != null) {
                     nativeImportButton.setVisibility(routerPage ? android.view.View.VISIBLE : android.view.View.GONE);
@@ -24,4 +24,4 @@ if "nativeImportButton" not in s or "nativeImportButton.setVisibility(android.vi
     matches=[line.strip() for line in s.splitlines() if "nativeImportButton" in line or "importParams.gravity" in line]
     print("Overlay source diagnostics:", matches)
     raise SystemExit("Native import button visibility verification failed")
-print("v1.8.2 native import button forced visible at bottom-center, independent of router URL")
+print("v1.8.2 native import button forced visible above Android navigation bar at bottom-center, independent of router URL")
