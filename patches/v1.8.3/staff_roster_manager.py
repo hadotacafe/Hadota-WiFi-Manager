@@ -43,8 +43,8 @@ s = s.replace(old, new, 1)
 html.write_text(s, encoding="utf-8")
 gradle = root / "app/build.gradle"
 g = gradle.read_text(encoding="utf-8")
-g, n1 = re.subn(r"versionCode\\s+\\d+", "versionCode 33", g, count=1)
-g, n2 = re.subn(r"versionName\\s+'[^']+'", "versionName '1.8.3'", g, count=1)
+g, n1 = re.subn(r"versionCode\s+\d+", "versionCode 33", g, count=1)
+g, n2 = re.subn(r"versionName\s+'[^']+'", "versionName '1.8.3'", g, count=1)
 if n1 != 1 or n2 != 1:
     raise SystemExit("Could not update v1.8.3 app version")
 gradle.write_text(g, encoding="utf-8")
