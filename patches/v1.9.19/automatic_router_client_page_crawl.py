@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 root = Path("source/Hadota-WiFi-Manager-Android")
 router = root / "app/src/main/java/com/hadota/wifimanager/RouterActivity.java"
@@ -62,7 +63,9 @@ return JSON.stringify({origin:base,currentUrl:location.href,currentTitle:documen
 
 java_string = '"' + js.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
 s = s[:start] + 'router.evaluateJavascript(' + java_string + ', value -> {' + s[end + len(end_marker):]
-s = s.replace('versionCode 53', 'versionCode 56')
-s = s.replace("versionName '1.9.18'", "versionName '1.9.21'")
+s, vc = re.subn(r'versionCode\s+\d+', 'versionCode 57', s, count=1)
+s, vn = re.subn(r"versionName\s+'[^']+'", "versionName '1.9.22'", s, count=1)
+if vc != 1 or vn != 1:
+    raise SystemExit('Could not update Android version metadata')
 router.write_text(s, encoding="utf-8")
 print("v1.9.19: automatic same-origin router page discovery and per-page client extraction")
