@@ -63,9 +63,12 @@ return JSON.stringify({origin:base,currentUrl:location.href,currentTitle:documen
 
 java_string = '"' + js.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
 s = s[:start] + 'router.evaluateJavascript(' + java_string + ', value -> {' + s[end + len(end_marker):]
-s, vc = re.subn(r'versionCode\s+\d+', 'versionCode 57', s, count=1)
-s, vn = re.subn(r"versionName\s+'[^']+'", "versionName '1.9.22'", s, count=1)
+gradle = root / "app/build.gradle"
+g = gradle.read_text(encoding="utf-8")
+g, vc = re.subn(r'versionCode\s+\d+', 'versionCode 57', g, count=1)
+g, vn = re.subn(r"versionName\s+'[^']+'", "versionName '1.9.22'", g, count=1)
 if vc != 1 or vn != 1:
     raise SystemExit('Could not update Android version metadata')
+gradle.write_text(g, encoding="utf-8")
 router.write_text(s, encoding="utf-8")
 print("v1.9.19: automatic same-origin router page discovery and per-page client extraction")
