@@ -49,8 +49,8 @@ router.write_text(s, encoding="utf-8")
 
 gradle = root / "app/build.gradle"
 g = gradle.read_text(encoding="utf-8")
-g, a = re.subn(r"versionCode\\s+\\d+", "versionCode 59", g, count=1)
-g, b = re.subn(r"versionName\\s+'[^']+'", "versionName '1.9.24'", g, count=1)
+g, a = re.subn(r"versionCode\s+\d+", "versionCode 59", g, count=1)
+g, b = re.subn(r"versionName\s+'[^']+'", "versionName '1.9.24'", g, count=1)
 if a != 1 or b != 1:
     raise SystemExit("Could not update app version to 1.9.24")
 gradle.write_text(g, encoding="utf-8")
