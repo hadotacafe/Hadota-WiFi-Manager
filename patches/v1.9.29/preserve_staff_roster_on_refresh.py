@@ -48,8 +48,8 @@ if needle in s:
 html.write_text(s,encoding="utf-8")
 g=root/"app/build.gradle"
 v=g.read_text(encoding="utf-8")
-v,a=re.subn(r"versionCode\\s+\\d+","versionCode 64",v,count=1)
-v,b=re.subn(r"versionName\\s+'[^']+'","versionName '1.9.29'",v,count=1)
+v,a=re.subn(r"versionCode\s+\d+","versionCode 64",v,count=1)
+v,b=re.subn(r"versionName\s+'[^']+'","versionName '1.9.29'",v,count=1)
 if a!=1 or b!=1: raise SystemExit("Version update failed")
 g.write_text(v,encoding="utf-8")
 print("v1.9.29: merge live clients into saved inventory; preserve offline staff and owner devices; show connection state")
