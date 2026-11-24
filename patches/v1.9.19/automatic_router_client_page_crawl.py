@@ -40,7 +40,7 @@ function inspect(url,html,status){
  for(const line of (d.body?.innerText||'').split('\n'))addRow([line],[],url,d.title);
  [...d.querySelectorAll('a[href]')].forEach(a=>{add(a.href,todo);if(rx.test(a.href)||rx.test(a.textContent||''))add(a.href,endpoints)});
  [...d.querySelectorAll('[onclick]')].forEach(el=>collectPaths(el.getAttribute('onclick')||''));
- [...d.querySelectorAll('form[action]')].forEach(f=>{add(f.action,todo);add(f.action,endpoints)});
+ [...d.querySelectorAll('form[action]')].forEach(f=>add(f.action,endpoints));
  [...d.querySelectorAll('script[src]')].forEach(x=>add(x.src,assets));
  [...d.querySelectorAll('script:not([src])')].forEach(x=>collectPaths(x.textContent||''));
  collectPaths(html);
@@ -63,6 +63,6 @@ return JSON.stringify({origin:base,currentUrl:location.href,currentTitle:documen
 java_string = '"' + js.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n') + '"'
 s = s[:start] + 'router.evaluateJavascript(' + java_string + ', value -> {' + s[end + len(end_marker):]
 s = s.replace('versionCode 53', 'versionCode 54')
-s = s.replace("versionName '1.9.18'", "versionName '1.9.19'")
+s = s.replace("versionName '1.9.18'", "versionName '1.9.20'")
 router.write_text(s, encoding="utf-8")
 print("v1.9.19: automatic same-origin router page discovery and per-page client extraction")
