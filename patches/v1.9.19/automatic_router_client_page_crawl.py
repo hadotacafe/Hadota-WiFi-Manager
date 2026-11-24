@@ -49,13 +49,13 @@ const visibleText=(document.body?.innerText||'').slice(0,18000);
 const visibleTables=[...document.querySelectorAll('table')].slice(0,30).map(t=>[...t.querySelectorAll('tr')].map(r=>[...r.querySelectorAll('th,td')].map(c=>(c.innerText||'').trim()).filter(Boolean)).filter(r=>r.length));
 inspect(location.href,document.documentElement?.outerHTML||'',200);
 seen.add(location.href);
-while(todo.length&&pages.length<80){
- const u=todo.shift();if(seen.has(u))continue;seen.add(u);
- try{const r=await fetch(u,{credentials:'include',redirect:'follow',cache:'no-store'});inspect(r.url||u,await r.text(),r.status)}
- catch(e){pages.push({url:u,error:String(e)})}
-}
 for(const u of [...assets].slice(0,35)){
  try{const r=await fetch(u,{credentials:'include',redirect:'follow',cache:'no-store'});collectPaths(await r.text())}catch(e){}
+}
+while(todo.length&&pages.length<80){
+ const u=todo.shift();if(seen.has(u)||/logout|logoff|reboot|reset|restore|disconnect|factory/i.test(u))continue;seen.add(u);
+ try{const r=await fetch(u,{credentials:'include',redirect:'follow',cache:'no-store'});inspect(r.url||u,await r.text(),r.status)}
+ catch(e){pages.push({url:u,error:String(e)})}
 }
 return JSON.stringify({origin:base,currentUrl:location.href,currentTitle:document.title,currentPageAuthenticated:!document.querySelector('input[type=password],input[name*=pass i],input[id*=pass i]'),visibleText,visibleTables,scannedAt:new Date().toISOString(),pages,scriptFiles:[...assets],candidateEndpoints:[...endpoints],devices});
 })()""";
