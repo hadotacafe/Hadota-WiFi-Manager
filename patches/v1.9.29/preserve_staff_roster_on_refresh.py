@@ -42,9 +42,6 @@ new=r'''function showLiveDevices(devices,rawPayload){
  $('inspectResult').textContent='تم تحديث '+online+' جهاز متصل. تم الاحتفاظ بالأجهزة المحفوظة غير المتصلة ('+offline+' موظف) دون حذفها من القائمة.';
 }'''
 s=s[:start]+new+s[end:]
-needle='<span class="pill">\${d.source||\\'محلي\\'}</span>'
-if needle in s:
- s=s.replace(needle,'<span class="pill">\${d.connectionStatus===\\'connected\\'?\\'متصل الآن\\':d.connectionStatus===\\'disconnected\\'?\\'غير متصل\\':\\'غير متحقق\\'}</span>',1)
 html.write_text(s,encoding="utf-8")
 g=root/"app/build.gradle"
 v=g.read_text(encoding="utf-8")
