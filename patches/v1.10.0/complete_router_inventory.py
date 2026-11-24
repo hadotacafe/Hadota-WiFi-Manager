@@ -25,11 +25,23 @@ for(const d of frameDocs()){
 if(expanded.length)await new Promise(resolve=>setTimeout(resolve,450));
 const expandedDocs=frameDocs();
 expandedDocs.forEach(d=>{try{inspect(d.location.href,d.documentElement?.outerHTML||'',200)}catch(e){}});
+// Bound all router reads so the scan returns instead of hanging indefinitely.
+const scanDeadline=Date.now()+15000;
+async function fetchPageBounded(url){const remaining=Math.max(250,Math.min(2500,scanDeadline-Date.now()));const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),remaining);try{const response=await fetch(url,{credentials:'include',redirect:'follow',cache:'no-store',signal:controller.signal});return {url:response.url||url,status:response.status,text:await response.text()};}finally{clearTimeout(timer)}}
 '''
 def java_escape(x):
  return x.replace(bs,bs*2).replace('"',bs+'"').replace(chr(10),bs+'n')
 replacement="docs.forEach(d=>{try{inspect(d.location.href,d.documentElement?.outerHTML||'',200)}catch(e){}});"+bs+'n'+java_escape(js)+bs+'nseen.add(location.href);'
 s=s.replace(anchor,replacement,1)
+# Cap the scan duration and each same-origin request to prevent an endless loading state.
+replacements=[
+("for(const u of [...assets].slice(0,35)){", "for(const u of [...assets].slice(0,35)){if(Date.now()>=scanDeadline)break;"),
+("const r=await fetch(u,{credentials:'include',redirect:'follow',cache:'no-store'});collectPaths(await r.text())", "const r=await fetchPageBounded(u);collectPaths(r.text)"),
+("while(todo.length&&pages.length<80){", "while(todo.length&&pages.length<80&&Date.now()<scanDeadline){"),
+("const r=await fetch(u,{credentials:'include',redirect:'follow',cache:'no-store'});inspect(r.url||u,await r.text(),r.status)", "const r=await fetchPageBounded(u);inspect(r.url,r.text,r.status)")]
+for old,new in replacements:
+ if old not in s: raise SystemExit('Scan timeout replacement anchor missing: '+old[:50])
+ s=s.replace(old,new,1)
 router.write_text(s,encoding='utf-8')
 html=root/'app/src/main/assets/index.html'
 h=html.read_text(encoding='utf-8')
