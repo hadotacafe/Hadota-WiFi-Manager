@@ -1,4 +1,4 @@
-name: Build Hadota WiFi Manager v1.11.0 validation run
+name: Build Hadota WiFi Manager v1.11.0 APK
 on:
   workflow_dispatch:
   push:
