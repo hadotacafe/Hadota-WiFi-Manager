@@ -1,4 +1,4 @@
-name: Build Hadota WiFi Manager v1.11.0 APK
+name: Build Hadota WiFi Manager v1.12.1 APK
 on:
   workflow_dispatch:
   push:
@@ -53,8 +53,9 @@ on:
       - 'patches/v1.9.31/remove_employee_device_cap.py'
       - 'patches/v1.9.32/instant_router_exit_and_scan_feedback.py'
       - 'patches/v1.10.0/complete_router_inventory.py'
-      - 'patches/v1.11.0/enable_diagnostics.py'
-      - 'patches/v1.11.0/validate_build.py'
+      - 'patches/v1.12.1/enable_diagnostics.py'
+      - 'patches/v1.12.1/validate_build.py'
+      - 'patches/v1.12.1/native_router_scan_controls.py'
 permissions:
   contents: read
 jobs:
@@ -120,13 +121,14 @@ jobs:
           python3 patches/v1.9.31/remove_employee_device_cap.py
           python3 patches/v1.9.32/instant_router_exit_and_scan_feedback.py
           python3 patches/v1.10.0/complete_router_inventory.py
-          python3 patches/v1.11.0/enable_diagnostics.py
-          python3 patches/v1.11.0/validate_build.py
+          python3 patches/v1.12.1/enable_diagnostics.py
+          python3 patches/v1.12.1/validate_build.py
+          python3 patches/v1.12.1/native_router_scan_controls.py
           test -f source/Hadota-WiFi-Manager-Android/settings.gradle
       - name: Upload complete patched Android project
         uses: actions/upload-artifact@v4
         with:
-          name: Hadota-WiFi-Manager-v1.11.0-full-source
+          name: Hadota-WiFi-Manager-v1.12.1-full-source
           path: source/Hadota-WiFi-Manager-Android/
           if-no-files-found: error
       - name: Extract source for crash diagnosis
@@ -143,6 +145,6 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: Hadota-WiFi-Manager-v1.11.0-debug
+          name: Hadota-WiFi-Manager-v1.12.1-debug
           path: source/Hadota-WiFi-Manager-Android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
