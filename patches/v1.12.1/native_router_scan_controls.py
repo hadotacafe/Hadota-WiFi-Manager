@@ -69,3 +69,13 @@ if old not in s:
 s = s.replace(old, new, 1)
 router.write_text(s, encoding="utf-8")
 print("Native scan and return controls added above the router WebView.")
+
+# Bump Android package version for this tested build.
+import re
+gradle = root / "app/build.gradle"
+g = gradle.read_text(encoding="utf-8")
+g, code_count = re.subn(r"versionCode\\s+\\d+", "versionCode 70", g, count=1)
+g, name_count = re.subn(r"versionName\\s+'[^']+'", "versionName '1.12.1'", g, count=1)
+if code_count != 1 or name_count != 1:
+    raise SystemExit("Could not update Android version metadata")
+gradle.write_text(g, encoding="utf-8")
