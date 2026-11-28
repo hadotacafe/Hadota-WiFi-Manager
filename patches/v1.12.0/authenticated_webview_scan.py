@@ -39,12 +39,16 @@ if old_state not in r and new_state not in r:
     raise SystemExit("authentication state anchor not found")
 r = r.replace(old_state, new_state)
 
-old = '''                    String report = value == null ? "null" : value;
-                    if (router == null) return;
-                    router.evaluateJavascript("(function(){var x=document.getElementById('hadotaScanBtn');if(x){x.disabled=false;x.dataset.busy='0';x.textContent='فحص بيانات الراوتر'}return true})()", null);
-                    router.evaluateJavascript("(function(){return document.body?document.body.innerText:''})()", bodyValue -> {'''
-new = '''                    String report = value == null ? "null" : value;
-                    if (router == null) return;
+scan_start = r.find("@JavascriptInterface public void scanAll()")
+callback_start = r.find('String report = value == null ? "null" : value;', scan_start)
+if scan_start < 0 or callback_start < 0:
+    raise SystemExit("scanAll callback not found")
+anchor = "if (router == null) return;"
+pos = r.find(anchor, callback_start)
+if pos < 0:
+    raise SystemExit("scan callback router guard not found")
+insert_at = pos + len(anchor)
+login_guard = """
                     try {
                         String decoded = new org.json.JSONArray("[" + report + "]").optString(0, "{}");
                         org.json.JSONObject scanState = new org.json.JSONObject(decoded);
@@ -53,11 +57,9 @@ new = '''                    String report = value == null ? "null" : value;
                             return;
                         }
                     } catch (Exception ignored) {}
-                    router.evaluateJavascript("(function(){var x=document.getElementById('hadotaScanBtn');if(x){x.disabled=false;x.dataset.busy='0';x.textContent='فحص بيانات الراوتر'}var n=document.getElementById('hadotaLoginHint');if(n)n.remove();return true})()", null);
-                    router.evaluateJavascript("(function(){return document.body?document.body.innerText:''})()", bodyValue -> {'''
-if old not in r and new not in r:
-    raise SystemExit("scan callback anchor not found")
-r = r.replace(old, new)
+"""
+if "scanState" not in r:
+    r = r[:insert_at] + login_guard + r[insert_at:]
 router.write_text(r, encoding="utf-8")
 
 g = gradle.read_text(encoding="utf-8")
